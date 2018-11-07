@@ -10,7 +10,7 @@ import tensorflow as tf
 import tensorflow_hub as hub
 import unittest
 
-from .. import read_and_split, export_hub_module
+from ..export import read_and_split, export_hub_module
 
 
 class TestReadAndSplit(unittest.TestCase):
@@ -56,35 +56,42 @@ class TestExportHubModule(tf.test.TestCase):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def testExport(self):
-        expected_key1_stats = [[1., 2., 3.]]
-
         export_hub_module(self.source_keys, self.source_values, self.temp_dir)
+        lookup_values = hub.Module(self.temp_dir)
 
-        stats_lookup = hub.Module(self.temp_dir)
-        key1_stats = stats_lookup(['key1'])
+        expected_values_default = [1., 2., 3.]
+        lookup_values_default = lookup_values(tf.SparseTensor(
+            indices=[[0]],
+            values=['key1'],
+            dense_shape=[1]
+        ))
+
+        expected_values_context = [[1., 2., 3.]]
+        lookup_values_context = lookup_values(tf.SparseTensor(
+            indices=[[0, 0]],
+            values=['key1'],
+            dense_shape=[1, 1]
+        ), signature='context')
+
+        expected_values_sequence = [[[1., 2., 3.]]]
+        lookup_values_sequence = lookup_values(tf.SparseTensor(
+            indices=[[0, 0, 0]],
+            values=['key1'],
+            dense_shape=[1, 1, 1]
+        ), signature='sequence')
 
         with self.test_session() as sess:
             sess.run([tf.global_variables_initializer(), tf.tables_initializer()])
-            key1_stats_value = sess.run(key1_stats)
+            [
+                result_values_default,
+                result_values_context,
+                result_values_sequence,
+            ] = sess.run([
+                lookup_values_default,
+                lookup_values_context,
+                lookup_values_sequence,
+            ])
 
-        self.assertListEqual(expected_key1_stats, key1_stats_value.tolist())
-
-    def testLookup(self):
-        expected_value = [
-            [1., 2., 3.],
-            [0., 0., 0.],
-        ]
-
-        export_hub_module(self.source_keys, self.source_values, self.temp_dir)
-        stat_lookup_feature_column = hub.text_embedding_column(key="tokens", module_spec=self.temp_dir)
-
-        features = {
-            'tokens': tf.constant(['key1', 'key999'])
-        }
-        context_input = tf.feature_column.input_layer(features=features, feature_columns=[stat_lookup_feature_column])
-
-        with self.test_session() as sess:
-            sess.run([tf.global_variables_initializer(), tf.tables_initializer()])
-            features_value = sess.run(context_input)
-
-        self.assertListEqual(expected_value, features_value.tolist())
+        self.assertListEqual(expected_values_default, result_values_default.tolist())
+        self.assertListEqual(expected_values_context, result_values_context.tolist())
+        self.assertListEqual(expected_values_sequence, result_values_sequence.tolist())
