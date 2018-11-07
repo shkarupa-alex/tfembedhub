@@ -27,7 +27,6 @@ def read_and_split_txt(file_name):
     with open(file_name, 'rb') as src_file:
         for row in src_file:
             row = row.decode('utf-8').strip().split()
-            print(row)
             if len(row) < 2:  # at least label and one feature
                 continue
 
