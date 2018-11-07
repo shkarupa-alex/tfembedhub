@@ -13,9 +13,9 @@ _EMBEDDINGS_VAR_NAME = 'embeddings'
 
 
 def read_and_split(src_file):
-    if src_file.name.endswith('.txt'):
+    if src_file.endswith('.txt'):
         return read_and_split_txt(src_file)
-    if src_file.name.endswith('.npy'):
+    if src_file.endswith('.npy'):
         return read_and_split_npy(src_file)
 
     raise NotImplementedError('Unknown file format')

@@ -9,7 +9,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='tftextembeddinghub',
-    version='1.1.2',
+    version='1.1.3',
     description='TensorFlow Hub module producer for text embedding lookup',
     long_description=long_description,
     long_description_content_type="text/markdown",
