@@ -13,24 +13,51 @@ _EMBEDDINGS_VAR_NAME = 'embeddings'
 
 
 def read_and_split(src_file):
-    keys_stats = np.load(src_file)
-    assert 2 == len(keys_stats.shape)
-    assert 1 <= keys_stats.shape[0]
-    assert 2 <= keys_stats.shape[1]
-    assert '<-UNIQUE->' == keys_stats[0][0]
+    if src_file.name.endswith('.txt'):
+        return read_and_split_txt(src_file)
+    if src_file.name.endswith('.npy'):
+        return read_and_split_npy(src_file)
 
-    return _split_keys_stats(keys_stats)
+    raise NotImplementedError('Unknown file format')
 
 
-def _split_keys_stats(keys_stats):
-    keys = keys_stats[:, 0].astype('U')
-    stats = keys_stats[:, 1:].astype(np.float32)
+def read_and_split_txt(file_name):
+    keys, features = [], []
 
-    return keys, stats
+    with open(file_name, 'rb') as src_file:
+        for row in src_file:
+            row = row.decode('utf-8').strip().split()
+            print(row)
+            if len(row) < 2:  # at least label and one feature
+                continue
+
+            keys.append(row[0])
+            features.append([float(f) for f in row[1:]])
+
+    assert len(keys) > 0
+    assert '<-UNIQUE->' == keys[0]
+
+    sizes = [len(f) for f in features]
+    assert min(sizes) == max(sizes)
+
+    return keys, features
+
+
+def read_and_split_npy(file_name):
+    keys_features = np.load(file_name)
+    assert 2 == len(keys_features.shape)
+    assert 1 <= keys_features.shape[0]
+    assert 2 <= keys_features.shape[1]
+    assert '<-UNIQUE->' == keys_features[0][0]
+
+    keys = keys_features[:, 0].astype('U')
+    features = keys_features[:, 1:].astype(np.float32)
+
+    return keys, features
 
 
 def export_hub_module(keys, values, dest, combiner='mean', max_norm=None):
-    embed_size = values.shape[1]
+    embed_size = len(values[0])
     module_spec = _make_module_spec(keys, embed_size, combiner, max_norm)
 
     hub_module = hub.Module(module_spec)
@@ -38,7 +65,7 @@ def export_hub_module(keys, values, dest, combiner='mean', max_norm=None):
     # The embeddings may be very large (e.g., larger than the 2GB serialized Tensor limit).
     # To avoid having them frozen as constant Tensors in the graph we instead assign them through the
     # placeholders and feed_dict mechanism.
-    init_values = tf.placeholder(dtype=tf.float32, shape=values.shape)
+    init_values = tf.placeholder(dtype=tf.float32, shape=[len(values), embed_size])
     load_values = tf.assign(hub_module.variable_map[_EMBEDDINGS_VAR_NAME], init_values)
 
     with tf.Session() as sess:
@@ -99,7 +126,8 @@ def main():
     parser.add_argument(
         'src_path',
         type=argparse.FileType('rb'),
-        help='Path to saved NumPy 2D array. First column should contain string keys. First key should be "<-UNIQUE->"')
+        help='Path to saved NumPy or text 2D array. First column should contain string keys. '
+             'First key should be "<-UNIQUE->"')
     parser.add_argument(
         'dest_path',
         type=str,
@@ -116,6 +144,10 @@ def main():
         help='If not None, all embeddings are l2-normalized to max_norm before combining')
 
     argv, _ = parser.parse_known_args()
+
+    src_path = argv.src_path.name
+    argv.src_path.close()
+
     assert not os.path.exists(argv.dest_path) or os.path.isdir(argv.dest_path)
     try:
         os.makedirs(argv.dest_path)
@@ -124,5 +156,5 @@ def main():
 
     logging.basicConfig(level=logging.INFO)
 
-    keys, stats = read_and_split(argv.src_path)
-    export_hub_module(keys, stats, argv.dest_path, argv.combiner, argv.max_norm)
+    keys, features = read_and_split(src_path)
+    export_hub_module(keys, features, argv.dest_path, argv.combiner, argv.max_norm)
