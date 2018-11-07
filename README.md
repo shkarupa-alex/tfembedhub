@@ -19,6 +19,8 @@ np.save('source.npy', source)
 
 ```
 
+Another option is using text file with same content. Space and tab allowed separating labels and features from each other.
+
 2. Use command "tftextembeddinghub-convert" to convert saved array into TF Hub Module.
 ```bash
 tftextembeddinghub-convert source.npy module-dir/
