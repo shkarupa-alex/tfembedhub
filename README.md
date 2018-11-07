@@ -1,4 +1,4 @@
-# tftextembedinghub
+# tftextembeddinghub
 
 Convert NymPy 2D array of keys and features into TensorFlow frozen embedding lookup.
 
@@ -19,7 +19,7 @@ np.save('source.npy', source)
 
 ```
 
-2. Use command "tftextembedinghub-convert" to convert saved array into TF Hub Module.
+2. Use command "tftextembeddinghub-convert" to convert saved array into TF Hub Module.
 ```bash
-tftextembedinghub-convert source.npy module-dir/
+tftextembeddinghub-convert source.npy module-dir/
 ```

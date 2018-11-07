@@ -8,19 +8,19 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setup(
-    name='tftextembedinghub',
-    version='1.1.0',
+    name='tftextembeddinghub',
+    version='1.1.1',
     description='TensorFlow Hub module producer for text embedding lookup',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/shkarupa-alex/tftextembedinghub',
+    url='https://github.com/shkarupa-alex/tftextembeddinghub',
     author='Shkarupa Alex',
     author_email='shkarupa.alex@gmail.com',
     license='MIT',
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            'tftextembedinghub-convert=tftextembedinghub.export:main',
+            'tftextembeddinghub-convert=tftextembeddinghub.export:main',
         ],
     },
     install_requires=[
