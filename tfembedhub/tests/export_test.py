@@ -10,7 +10,7 @@ import tensorflow as tf
 import tensorflow_hub as hub
 import unittest
 
-from ..export import read_and_split_txt, read_and_split_npy, export_hub_module
+from ..export import read_and_split, export_hub_module
 
 
 class TestReadAndSplit(unittest.TestCase):
@@ -24,48 +24,29 @@ class TestReadAndSplit(unittest.TestCase):
 
     def testTxt(self):
         source = '\n'.join([
-            '<-UNIQUE-> 0. 0. 0.',
+            '<UNQ> 0. 0. 0.',
             'key1 1. 2. 3.',
             'key2 4. 5. 6.',
         ]) + '\n'
         with open(self.temp_file_txt, 'wb') as ttf:
             ttf.write(source.encode('utf-8'))
 
-        expected_keys = ['<-UNIQUE->', 'key1', 'key2']
+        expected_keys = ['<UNQ>', 'key1', 'key2']
         expected_values = [
             [0., 0., 0.],
             [1., 2., 3.],
             [4., 5., 6.],
         ]
 
-        keys, values = read_and_split_txt(self.temp_file_txt)
+        keys, values = read_and_split(self.temp_file_txt)
         self.assertListEqual(expected_keys, keys)
         self.assertListEqual(expected_values, values)
-
-    def testNpy(self):
-        source = np.array([
-            ('<-UNIQUE->', 0., 0., 0.),
-            ('key1', 1., 2., 3.),
-            ('key2', 4., 5., 6.),
-        ])
-        np.save(self.temp_file_npy, source)
-
-        expected_keys = ['<-UNIQUE->', 'key1', 'key2']
-        expected_values = [
-            [0., 0., 0.],
-            [1., 2., 3.],
-            [4., 5., 6.],
-        ]
-
-        keys, values = read_and_split_npy(self.temp_file_npy)
-        self.assertListEqual(expected_keys, keys.tolist())
-        self.assertListEqual(expected_values, values.tolist())
 
 
 class TestExportHubModule(tf.test.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
-        self.source_keys = ['<-UNIQUE->', 'key1', 'key2']
+        self.source_keys = ['<UNQ>', 'key1', 'key2']
         self.source_values = [
             [0., 0., 0.],
             [1., 2., 3.],
