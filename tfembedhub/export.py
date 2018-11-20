@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import argparse
 import logging
-import numpy as np
 import os
 import tensorflow as tf
 import tensorflow_hub as hub
@@ -12,16 +11,7 @@ import tensorflow_hub as hub
 _EMBEDDINGS_VAR_NAME = 'embeddings'
 
 
-def read_and_split(src_file):
-    if src_file.endswith('.txt'):
-        return read_and_split_txt(src_file)
-    if src_file.endswith('.npy'):
-        return read_and_split_npy(src_file)
-
-    raise NotImplementedError('Unknown file format')
-
-
-def read_and_split_txt(file_name):
+def read_and_split(file_name):
     keys, features = [], []
 
     with open(file_name, 'rb') as src_file:
@@ -33,24 +23,11 @@ def read_and_split_txt(file_name):
             keys.append(row[0])
             features.append([float(f) for f in row[1:]])
 
-    assert len(keys) > 0
-    assert '<-UNIQUE->' == keys[0]
+    assert len(keys) > 1, 'There should be at leas one row besides <UNQ>'
+    assert '<UNQ>' == keys[0], 'First key should equals <UNQ>'
 
     sizes = [len(f) for f in features]
-    assert min(sizes) == max(sizes)
-
-    return keys, features
-
-
-def read_and_split_npy(file_name):
-    keys_features = np.load(file_name)
-    assert 2 == len(keys_features.shape)
-    assert 1 <= keys_features.shape[0]
-    assert 2 <= keys_features.shape[1]
-    assert '<-UNIQUE->' == keys_features[0][0]
-
-    keys = keys_features[:, 0].astype('U')
-    features = keys_features[:, 1:].astype(np.float32)
+    assert min(sizes) == max(sizes), 'All embeddings should have same size'
 
     return keys, features
 
@@ -155,5 +132,10 @@ def main():
 
     logging.basicConfig(level=logging.INFO)
 
+    logging.info('Reading embeddings from {}'.format(src_path))
     keys, features = read_and_split(src_path)
+    logging.info('Loaded {} embeddings'.format(len(keys)))
+
+    logging.info('Exporting embeddings to {} with combiner={} and max_norm={}'.format(
+        argv.dest_path, argv.combiner, argv.max_norm))
     export_hub_module(keys, features, argv.dest_path, argv.combiner, argv.max_norm)

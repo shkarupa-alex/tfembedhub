@@ -1,27 +1,22 @@
-# tftextembeddinghub
+# tfembedhub
 
-Convert NymPy 2D array of keys and features into TensorFlow frozen embedding lookup.
+Convert embeddings vectors (.txt format) into TensorFlow frozen embedding lookup.
 
 ## How to
 
-1. Save array with features (or statistics) and lookup key as first column.
-Important: first row should have key "<-UNIQUE->"
+1. Save lookup keys and embeddings values in text file.
+
+Keys should be in first column. Other columns treated as embedding values. Any space-like characters allowed as columns separator.
+
+Important: first row should have key "<UNQ>".
 
 ```
-import numpy as np
-
-source = np.array([
-    ('<-UNIQUE->', 0., 0., 0.),
-    ('key1', 1., 2., 3.),
-    ('key2', 4., 5., 6.),
-])
-np.save('source.npy', source)
-
+<UNQ> 0. 0. 0.
+key1 1. 2. 3.
+key2 4. 5. 6.
 ```
 
-Another option is using text file with same content. Space and tab allowed separating labels and features from each other.
-
-2. Use command "tftextembeddinghub-convert" to convert saved array into TF Hub Module.
+2. Use command "tfembedhub-convert" to convert saved array into TF Hub Module.
 ```bash
-tftextembeddinghub-convert source.npy module-dir/
+tfembedhub-convert vectors.txt vectors-hub/
 ```
