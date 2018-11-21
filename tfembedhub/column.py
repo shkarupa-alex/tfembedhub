@@ -9,7 +9,7 @@ from tensorflow.python.feature_column import feature_column
 from tensorflow_hub import module
 
 
-def text_embedding_column(key, module_spec):
+def text_embedding_column(key, module_spec, trainable=False):
     """Upgraded version of tensorflow_hub.text_embedding_column
 
     Returns:
@@ -25,11 +25,12 @@ def text_embedding_column(key, module_spec):
     return _TextEmbeddingColumn(
         key=key,
         module_spec=module_spec,
+        trainable=trainable,
         signature='context',
     )
 
 
-def sequence_text_embedding_column(key, module_spec):
+def sequence_text_embedding_column(key, module_spec, trainable=False):
     """Upgraded version of tensorflow_hub.text_embedding_column with sequential input support
 
     Returns:
@@ -45,6 +46,7 @@ def sequence_text_embedding_column(key, module_spec):
     return _TextEmbeddingColumn(
         key=key,
         module_spec=module_spec,
+        trainable=trainable,
         signature='sequence',
     )
 
@@ -52,7 +54,7 @@ def sequence_text_embedding_column(key, module_spec):
 class _TextEmbeddingColumn(
     feature_column._DenseColumn,
     feature_column._SequenceDenseColumn,
-    collections.namedtuple('_ModuleEmbeddingColumn', ('key', 'module_spec', 'signature'))):
+    collections.namedtuple('_ModuleEmbeddingColumn', ('key', 'module_spec', 'trainable', 'signature'))):
     """Returned by text_embedding_column() or sequence_text_embedding_column(). Do not use directly."""
 
     @property
@@ -85,7 +87,7 @@ class _TextEmbeddingColumn(
     @property
     def _hub_module(self):
         if not hasattr(self, '_module'):
-            self._module = module.Module(self.module_spec, trainable=False)
+            self._module = module.Module(self.module_spec, trainable=self.trainable)
         return self._module
 
     def _get_dense_tensor(self, inputs, weight_collections=None, trainable=None):

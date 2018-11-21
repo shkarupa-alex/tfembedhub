@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np
+import os
 import shutil
 import tempfile
 import tensorflow as tf
@@ -14,14 +14,16 @@ from ..column import text_embedding_column, sequence_text_embedding_column
 class TestTextEmbeddingColumn(tf.test.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
+        self.temp_file = os.path.join(self.temp_dir, 'source.txt')
 
-        source_keys = np.array(['<-UNIQUE->', 'key1', 'key2'])
-        source_values = np.array([
-            [0., 0., 0.],
-            [1., 2., 3.],
-            [4., 5., 6.],
-        ])
-        export_hub_module(source_keys, source_values, self.temp_dir)
+        source = '\n'.join([
+            'key1 1. 2. 3.',
+            'key2 4. 5. 6.',
+        ]) + '\n'
+        with open(self.temp_file, 'wb') as ttf:
+            ttf.write(source.encode('utf-8'))
+
+        export_hub_module(self.temp_file, self.temp_dir)
 
         tf.reset_default_graph()
 

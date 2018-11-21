@@ -1,6 +1,6 @@
 # tfembedhub
 
-Convert embeddings vectors (.txt format) into TensorFlow frozen embedding lookup.
+Convert embeddings vectors (.txt format) into TensorFlowHub embedding lookup module.
 
 ## How to
 
@@ -8,15 +8,27 @@ Convert embeddings vectors (.txt format) into TensorFlow frozen embedding lookup
 
 Keys should be in first column. Other columns treated as embedding values. Any space-like characters allowed as columns separator.
 
-Important: first row should have key "<UNQ>".
+Non-existing keys will refer to "<UNQ>" key embeddings. You may provide embedding values for that, otherwise it will be initialized with zeros.
 
 ```
-<UNQ> 0. 0. 0.
 key1 1. 2. 3.
 key2 4. 5. 6.
+<UNQ> 0. -1. 0.
 ```
 
-2. Use command "tfembedhub-convert" to convert saved array into TF Hub Module.
+2. Sonvert saved embeddings into TF Hub Module with "tfembedhub-convert" command.
 ```bash
 tfembedhub-convert vectors.txt vectors-hub/
+```
+
+3. Use embedding hub via columns in your estimator.
+```python
+from tfembedhub text_embedding_column, sequence_text_embedding_column
+
+my_words_embedding = sequence_text_embedding_column(
+    key='sparse_key_from_features',
+    module_spec='path/to/my/hub'
+)
+
+# Then pass my_words_embedding to estimator "columns" list.
 ```

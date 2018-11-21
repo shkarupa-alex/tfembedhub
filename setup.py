@@ -26,6 +26,7 @@ setup(
     install_requires=[
         'tensorflow>=1.9.0',
         'tensorflow_hub>=0.1.1',
+        'numpy>=1.13.3',
     ],
     test_suite='nose.collector',
     tests_require=['nose']
