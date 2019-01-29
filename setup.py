@@ -9,7 +9,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='tfembedhub',
-    version='1.2.0',
+    version='1.2.1',
     description='TensorFlow Hub module producer for text embedding lookup',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -24,10 +24,15 @@ setup(
         ],
     },
     install_requires=[
-        'tensorflow>=1.9.0',
+        # https://github.com/tensorflow/tensorflow/issues/7166
+        # 'tensorflow>=1.9.0',
         'tensorflow_hub>=0.1.1',
         'numpy>=1.13.3',
     ],
+    extras_require={
+        'tf_cpu': ['tensorflow>=1.9.0'],
+        'tf_gpu': ['tensorflow-gpu>=1.9.0'],
+    },
     test_suite='nose.collector',
     tests_require=['nose']
 )
