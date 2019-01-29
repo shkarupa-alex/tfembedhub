@@ -115,7 +115,7 @@ def _make_module_spec(keys_vocab, embedding_size, is_trainable, combiner, max_no
             name=_EMBEDDINGS_VAR_NAME,
             shape=embeddings_shape,
             dtype=tf.float32,
-            initializer=tf.zeros(embeddings_shape),
+            initializer=tf.zeros_initializer(),
             trainable=is_trainable,
             partitioner=tf.variable_axis_size_partitioner(
                 max_shard_bytes=shard_bytes  # 1Gb by default
